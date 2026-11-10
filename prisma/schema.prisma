@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Barber {
+  id              Int           @id @default(autoincrement())
+  name            String
+  phone           String?
+  commissionRate Decimal       @default(10.00) @map("commission_rate")
+  status          String        @default("active")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  transactions    Transaction[]
+
+  @@map("barbers")
+}
+
+model Service {
+  id              Int      @id @default(autoincrement())
+  serviceName     String   @map("service_name")
+  price           Decimal
+  durationMinutes Int      @default(30) @map("duration_minutes")
+  description     String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("services")
+}
+
+model Transaction {
+  id              Int                 @id @default(autoincrement())
+  transactionCode String              @unique @map("transaction_code")
+  customerName    String?             @map("customer_name")
+  barberId        Int?                @map("barber_id")
+  barber          Barber?             @relation(fields: [barberId], references: [id])
+  totalAmount     Decimal             @map("total_amount")
+  paymentMethod   String              @default("cash") @map("payment_method")
+  status          String              @default("completed")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  details         TransactionDetail[]
+
+  @@map("transactions")
+}
+
+model TransactionDetail {
+  id            Int         @id @default(autoincrement())
+  transactionId Int         @map("transaction_id")
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  itemType      String      @map("item_type")
+  itemId        Int         @map("item_id")
+  price         Decimal
+  qty           Int         @default(1)
+
+  @@map("transaction_details")
+}
